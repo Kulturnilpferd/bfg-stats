@@ -41,7 +41,7 @@ function main(RPCMiner $miner) {
 				'ID' => 'id',
 				'Status' => 'status',
 				'MHS av' => 'mhsAvg',
-				'MHS 5s' => 'mhs5s',
+				'MHS 20s' => 'mhs20s',
 				'Utility' => 'utility',
 				'Last Share Time' => 'lastShareTime',
 				'Accepted' => 'accepted',

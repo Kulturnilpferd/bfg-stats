@@ -20,18 +20,81 @@
             min-height: 20px;
             height: 20px;
         }
+		
+		
+		/*Simple css to style it like a toggle switch*/
+		.theme-switch-wrapper {
+		  position: absolute;
+		  top: 0px;
+		  right: 10px;
+		}
+		.theme-switch {
+		  display: inline-block;
+		  height: 34px;
+		  position: relative;
+		  width: 60px;
+		  right: 10px;
+		  top:10px;
+		}
 
-        .footer {
-            font-size: 80%;
-        }
+		.theme-switch input {
+		  display:none;
+		}
+
+		.slider {
+		  background-color: #ccc;
+		  bottom: 0;
+		  cursor: pointer;
+		  left: 0;
+		  position: absolute;
+		  right: 0;
+		  top: 0;
+		  transition: .4s;
+		}
+
+		.slider:before {
+		  background-color: #fff;
+		  bottom: 4px;
+		  content: "";
+		  height: 26px;
+		  left: 4px;
+		  position: absolute;
+		  transition: .4s;
+		  width: 26px;
+		}
+
+		input:checked + .slider {
+		  background-color: #808080;
+		}
+
+		input:checked + .slider:before {
+		  transform: translateX(26px);
+		}
+
+		.slider.round {
+		  border-radius: 34px;
+		}
+
+		.slider.round:before {
+		  border-radius: 50%;
+		}
+		
+		.coin-marquee-wrapper {
+		  height: 50px;
+		}
+		.coin-marquee-header-signature {
+		  visibility: hidden;
+		}
+
     </style>
 
     <script src="js/angular.1.0.8.min.js"></script>
     <script src="js/angular-cookies.1.0.8.min.js"></script>
     <script src="js/app.js"></script>
+	<script src="js/chart.min.js"></script>
 </head>
 
-<body ng-controller="MainCtrl">
+<body ng-controller="MainCtrl" id="body">
 
 <nav class="navbar navbar-default navbar-static-top navbar-inverse" role="navigation" ng-controller="MenuCtrl">
     <div class="navbar-header">
@@ -40,24 +103,29 @@
             <li ng-class="isMenuActive('/stats')"><a href="#/stats">Statistics</a></li>
             <li ng-class="isMenuActive('/pools')"><a href="#/pools">Pools</a></li>
         </ul>
-    </div>
-</nav>
 
+    </div>
+	<!-- Cointicker widget -->
+	<div style="height:46px; overflow:hidden; text-align: right; line-height:14px; block-size:46px; font-size: 12px; font-feature-settings: normal; text-size-adjust: 100%; padding:4px !important;padding: 0px; margin-right: 90px;">
+		<iframe src="https://widget.coinlib.io/widget?type=horizontal_v2&theme=dark&pref_coin_id=1506&invert_hover=yes" width="100%" height="50px" scrolling="auto" marginwidth="0" marginheight="0" frameborder="0" border="0" style="background-color:#222222;border:0;margin:0;padding:0;"></iframe>
+	</div>
+	<!-- Darkmode switch -->
+	<div class="theme-switch-wrapper">
+		<label class="theme-switch" for="checkbox">
+			<input type="checkbox" id="checkbox" />
+			<div class="slider round"></div>
+	  </label>
+	</div>
+	
+</nav>
+<!--
 <div class="progress-container">
     <div class="progress progress-striped active" ng-show="working">
         <div class="progress-bar progress-bar-info" role="progressbar">
         </div>
     </div>
 </div>
-
+-->
 <div class="container" ng-view></div>
 
-<hr/>
-
-<footer class="container text-center">
-    <p>&copy; 2013 dzindra | Donate: 14ABuhZP7UnZQjwtyWrL19DUiof2jw5ykt</p>
-    <p><a href="https://github.com/dzindra/bfg-stats">Source on GitHub</a> | <a href="http://www.apache.org/licenses/LICENSE-2.0">Licensed under the Apache License, Version 2.0</a></p>
-</footer>
-
-</body>
 </html>

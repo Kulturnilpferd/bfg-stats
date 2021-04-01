@@ -17,6 +17,10 @@
  */
 'use strict';
 
+var d = new Date();
+var mhs20sTotal = 0;
+var mhsAvgTotal = 0;
+var hwErrorsTotal = 0;
 var app = angular.module('app', ['ngCookies']);
 
 app.config(['$routeProvider', function ($routeProvider) {
@@ -145,6 +149,41 @@ app.controller('MainCtrl', ['$scope', function ($scope) {
     $scope.$on('refreshFinished', function () {
         $scope.working = false;
     });
+	
+	function setDarkTheme() {
+		document.getElementById("body").style.backgroundColor="#080808";
+		document.getElementById("body").style.color="#fff";
+	}
+	
+	function setLightTheme() {
+		document.getElementById("body").style.backgroundColor="#fff";
+		document.getElementById("body").style.color="#000";	
+	}
+	
+	const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+	function switchTheme(e) {
+		if (e.target.checked) {
+			//dark
+			localStorage.setItem('theme', 'dark'); //add this
+			setDarkTheme();
+		}
+		else {
+			//light
+			localStorage.setItem('theme', 'light'); //add this
+			setLightTheme();
+		}    
+	}
+	toggleSwitch.addEventListener('change', switchTheme, false);
+	
+	const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
+	if (currentTheme) {
+		setLightTheme();
+	
+		if (currentTheme === 'dark') {
+			toggleSwitch.checked = true;
+			setDarkTheme();
+		}
+	}
 }]);
 
 app.controller('MenuCtrl', ['$scope', '$location', function ($scope, $location) {
@@ -154,45 +193,184 @@ app.controller('MenuCtrl', ['$scope', '$location', function ($scope, $location) 
 }]);
 
 app.controller('StatsCtrl', ['$scope', '$http', 'RefreshService', function ($scope, $http, RefreshService) {
+	
+//CHart geht los		
+function addData(chart, label, data1, data2) {
+	chart.data.labels.push(label);
+	//chart.data.datasets.forEach((dataset) => {
+	//    dataset.data.push(data);
+	//});
+	chart.data.datasets[0].data.push(data1);
+	chart.data.datasets[1].data.push(data2);
+	chart.update();
+}
 
-    RefreshService.refreshFunc(function (deferred) {
-        var g = $http.post('php/stats.php', {}, {cache: false});
-        g.success(function (data) {
-            if (data.status == 1) {
-                $scope.devices = data.devices;
-                $scope.pools = data.pools;
+	
+var speedCanvas = document.getElementById("speedChart");
 
-                deferred.resolve();
-            } else {
-                if (!$scope.devices)
-                    $scope.devices = [];
-                if (!$scope.pools)
-                    $scope.pools = [];
+Chart.defaults.global.defaultFontFamily = "Lato";
+Chart.defaults.global.defaultFontSize = 18;
 
-                deferred.reject(data.error);
-            }
-        });
-        g.error(function (data, status) {
-            deferred.reject("HTTP error " + status);
-        });
-    });
+var dataFirst = {
+    label: "MH/s (20 sec)",
+    //data: [20, 15, 60, 60, 65, 30, 70],
+	pointRadius: 0,
+    lineTension: 0,
+	hitRadius: 6, 
+	hoverRadius: 6,
+    fill: true,
+    borderColor: '#3e95cd',
+	backgroundColor: 'rgba(62, 149, 205, 0.4)',	
+  };
+  
+var dataSecond = {
+    label: "MH/s (avg)",
+    //data: [0, 59, 75, 20, 20, 55, 40],
+	pointRadius: 0,
+    lineTension: 0,
+	hitRadius: 6, 
+	hoverRadius: 6,
+    fill: false,
+    borderColor: '#50cc55',
+  };
+
+var speedData = {
+  //labels: ["0s", "10s", "20s", "30s", "40s", "50s", "60s"],
+  labels: [],
+  datasets: [dataFirst, dataSecond]
+};
+
+var chartOptions = {
+	legend: {
+		display: true,
+		position: 'top',
+		labels: {
+		  boxWidth: 80,
+		  fontColor: '#696969'
+		},
+	},
+	responsive: true,
+    maintainAspectRatio: false,
+};
+
+var lineChart = new Chart(speedCanvas, {
+  type: 'line',
+  data: speedData,
+  options: chartOptions,
+});
 
 
-    $scope.isRefreshActive = function (value) {
-        return value == RefreshService.interval() ? 'active' : '';
-    };
+//chart ende (paar zeilen weiter graph update funktion (time und formatierung müssen noch gemacht werden)
 
-    $scope.doRefresh = RefreshService.refresh;
-    $scope.setRefresh = RefreshService.interval;
 
-    $scope.$on('refreshFinished', function (event, status, error) {
-        $scope.error = error;
-        $scope.lastRefresh = RefreshService.lastRefresh();
-    });
 
-    $scope.$on('$destroy', function () {
-        RefreshService.refreshFunc(null);
-    });
+
+RefreshService.refreshFunc(function (deferred) {
+	var g = $http.post('php/stats.php', {}, {cache: false});
+	g.success(function (data) {
+		if (data.status == 1) {
+			$scope.devices = data.devices;
+			$scope.pools = data.pools;
+			//GRAPH UPDATE FUNKTION--------------------------------------------------------------
+			let today = new Date()
+			//addData(lineChart,today.toLocaleDateString() + " " + today.toLocaleTimeString(),mhs20sTotal.toFixed(3),mhsAvgTotal.toFixed(3));
+			addData(lineChart,today.toLocaleTimeString(),mhs20sTotal.toFixed(3),mhsAvgTotal.toFixed(3));
+			deferred.resolve();
+		} else {
+			if (!$scope.devices)
+				$scope.devices = [];
+			if (!$scope.pools)
+				$scope.pools = [];
+
+			deferred.reject(data.error);
+		}
+	});
+	g.error(function (data, status) {
+		deferred.reject("HTTP error " + status);
+	});
+});
+
+$scope.getTotal = function (items, item, value) {
+	$scope.total = 0;
+	var totalArray = [];
+	if (value == 'mhsAvg') {
+		for(item in items){
+			$scope.total += items[item].mhsAvg;
+		}
+		mhsAvgTotal = $scope.total;
+		return $scope.total.toFixed(3);
+	}
+	if (value == 'mhs20s') {
+		for(item in items){
+			$scope.total += items[item].mhs20s;
+		}
+		mhs20sTotal = $scope.total;
+		return $scope.total.toFixed(3);
+	}
+	if (value == 'utility') {
+		for(item in items){
+			totalArray.push(items[item].utility);
+		}
+		for(var i = 0; i < totalArray.length; i++){
+			$scope.total += totalArray[i];
+		}
+		return ($scope.total / totalArray.length).toFixed(3);
+	}
+	if (value == 'accepted') {
+		for(item in items){
+			$scope.total += items[item].accepted;
+		}
+		return $scope.total.toFixed();
+	}
+	if (value == 'rejectedPct') {
+		for(item in items){
+			totalArray.push(items[item].rejectedPct);
+		}
+		for(var i = 0; i < totalArray.length; i++){
+			$scope.total += totalArray[i];
+		}
+		return ($scope.total / totalArray.length).toFixed(4);
+	}
+	if (value == 'rejected') {
+		for(item in items){
+			$scope.total += items[item].rejected;
+		}
+		return $scope.total.toFixed();
+	}
+	
+	if (value == 'hwErrorsPct') {
+		for(item in items){
+			totalArray.push(items[item].hwErrorsPct);
+		}
+		for(var i = 0; i < totalArray.length; i++){
+			$scope.total += totalArray[i];
+		}
+		return ($scope.total / totalArray.length).toFixed(4);
+	}
+	
+	if (value == 'hwErrors') {
+		for(item in items){
+			$scope.total += items[item].hwErrors;
+		}
+		return $scope.total.toFixed();
+	}
+};
+
+$scope.isRefreshActive = function (value) {
+	return value == RefreshService.interval() ? 'active' : '';
+};
+
+$scope.doRefresh = RefreshService.refresh;
+$scope.setRefresh = RefreshService.interval;
+
+$scope.$on('refreshFinished', function (event, status, error) {
+	$scope.error = error;
+	$scope.lastRefresh = RefreshService.lastRefresh();
+});
+
+$scope.$on('$destroy', function () {
+	RefreshService.refreshFunc(null);
+});
 
 }]);
 
