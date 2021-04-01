@@ -1,3 +1,5 @@
+PREVIEW: https://imgur.com/a/xU3LSml
+
 # bfg-stats
 
 Simple stats parsing from bfgminer rpc API. Uses PHP for reading from miner API and AngularJS for front-end.
