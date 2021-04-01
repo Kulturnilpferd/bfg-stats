@@ -22,3 +22,17 @@ Currently bfgminer saves its config file to default path `$HOME/.bfgminer/bfgmin
 
 ## License
 &copy; 2013 dzindra. [Licensed under the Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+
+
+
+###########################
+#Changes by Kulturnilpferd#
+###########################
+
+- Variable mhs5s changed to mhs20s to display a value (otherwise 0 due to api not posting this value)
+- Added a quick and dirty ChartJs for Mhs20s and MhsAvg (no mysql readed, just adds realtime data to graph)
+- Addad a cute and nice ticker with livestats from coinlib.io
+- Added a darkmode switch in the upper right corner
+
+Code is dirty but it works, will clean things up when it's finished :D
